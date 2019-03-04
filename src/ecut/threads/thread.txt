@@ -1,0 +1,198 @@
+
+	程序 : 就是通常说的 应用程序 ，比如 Office World 、Google Chrome 都是程序  [学校]
+	
+		  一个程序开启后，可能对应 一个 或 多个 进程
+		  
+		  但是 至少需要有一个进程
+		  
+		  如果对应多个 进程，则一定有一个主进程
+	
+	进程 :   [班级]
+	
+		一个正在运行中的 进程 可能 对应 一个 或  多个线程
+		
+		一个进程 至少 需要有一个 线程
+		
+		如果一个进程对应多个线程，则一定有一个是主线程
+		
+		一个 Java 虚拟机 启动后 对应一个 进程 ( JvmProcessTest )
+		
+		一个(次) Java 虚拟机启动后，其内部的数据相对于其它进程来说是独立的，当它退出时，所数据都将丢失 ( JvmProcessStateTest )
+		
+	线程 : 可以理解成是 轻量级 的进程 [座位]
+	
+		为什么 Java 语言一直吹牛皮:  我们简化了多线程编程
+	
+		
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1、用 Java 语言实现一个线程:
+
+		Thread t = new Thread();
+		
+		t.start();
+
+2、java.lang.Runnable 接口应该由那些打算通过 某一线程 执行 其实例的类来实现
+
+		public	abstract	void	run() ;
+		
+		Runnable 接口中的 run 方法 用来指定 线程需要 做什么
+		
+		如果要让 Runnable 类型的实例 运行起来，需要通过另外一个 线程来启动:
+			
+			参看: SecondThread 和 ThreadTest3
+
+3、java.lang.Thread 是程序中的执行线程
+
+		Thread 类 实现了  Runnable 接口 中的 run 方法 : 
+		
+				    public void run() {
+				        if ( target != null ) {
+				            target.run();
+				        }
+				    }
+				    
+				    private Runnable target ;
+				    
+				    public Thread( Runnable target )  
+		
+		因此，如果要 通过 继承 Thread 类来实现自己的 线程，则需要 重写 run 方法
+		
+			参看: FirstThread 和 ThreadTest2
+
+		Java 虚拟机允许应用程序并发地运行多个执行线程
+
+
+4、线程调度
+
+     4.1 并发 和 并行
+     
+	            并行: 多个 线程 同时 运行在 不同的 CPU 上
+	            
+	            并发:  同一时刻一个 CPU 只能运行一条指令，多个线程指令快速地轮换执行，
+	                        在某个时间段内，看上去具有多个线程同时执行的效果
+     
+     4.2 并发策略
+     
+     		  共享式 ( 协作式 )
+     		  
+     		  抢占式 ( 目前主流的调度方式 )
+     		
+   	 4.3 线程的优先级 ( Priority ) :  PriorityThread.java 和 PriorityThreadTest.java
+   	 
+   	 		优先级 越高 的 线程 获得 CPU 时间片 的机会越高
+   	 		
+   	 		调整线程的优先级，可以使用 Thread # setPriority( int priority )
+   	 		
+   	 		获得线程的优先级，可以使用 Thread # getPriority()
+   	 		
+   	 		与优先级有关的常量: 
+   	 			Thread.NORM_PRIORITY
+   	 			Thread.MIN_PRIORITY
+   	 			Thread.MAX_PRIORITY
+   	 
+   	 4.4 线程睡眠: Thread.sleep( long millis )
+   	 
+   	 		在任意的线程中 调用 Thread.sleep 方法可以让当前正在执行的　线程进入"睡眠" 状态 ( 阻塞状态 )
+   	 		
+   	 		Thread.sleep() 导致 正在执行的 当前线程 ( Thread.currentThread() ) 进入睡眠状态，
+   	 		从而释放 CPU 让其它的线程 有机会 可以获得 CPU ( 并执行其线程体中的代码 )
+   	 		这与 线程的 优先级 无关，无论是 优先级高的线程、优先级低的线程 都有机会获得 CPU
+   	 		
+   	 		
+   	 4.5 线程等待: Thread # join()
+   	 
+   	 		A 线程 内部 调用了 B 线程的 join 方法，
+   	 		将导致 A 线程进入等待状态 ( 阻塞状态 )，
+   	 		等到 B 线程执行结束后，A 线程在继续执行
+
+   	 4.6 线程让位:  Thread.yeild()
+   	 
+   	 		当一个正在运行的线程 调用了 Thread.yeild() 后，
+   	 		当前正在运行的线程将释放 CPU ，
+   	 		以便于 让 跟 自己具有 同等优先级 或 比 自己优先级高的线程 有机会 获得 CPU ，
+   	 		并且，它本身 还将参与 下次竞争
+   	 		
+
+	 4.7 精灵线程 : Thread # setDaemon( boolean on )
+	 
+	 		创建一个新的线程
+	 		Thread t = new Thread( runnable ) ;
+	 
+	 		在启动线程之前就应该将 某个 线程 设置为 精灵线程 
+	 		t.setDaemon( true ) ;
+	 		
+	 		之后再启动线程
+	 		t.start();
+	 		
+	 		精灵线程的特点是:
+	 		1>、随着 前台线程 的存在而存在，在后台执行
+	 		2>、当所有 前台线程都退出后，则 所有的 精灵线程 也可以结束了，此时 JVM 进程也将结束
+	 		3>、比较著名的精灵线程是  垃圾回收线程
+	 		
+
+5、 线程同步
+
+		同步代码块:
+		
+			  synchronized ( 同步锁 ) {
+			  
+			  		// 这里的代码就是 同步代码块 ( 获得 同步锁的 线程才可以执行 同步代码块 )
+			  		
+			  }
+			  
+			  所谓 同步锁  就是 几个线程 竞争的资源 ( 竞争什么资源，就拿什么 当 同步锁 )
+			  
+			  同步代码块的执行原理:
+			  
+			 	 获得同步锁  --->  执行同步代码块 --->  释放同步锁
+			 	
+			 
+			   如果 在 同步代码块中 调用了 Thread.sleep 方法，那么 当前线程 会 带着 同步锁 去睡眠
+			  
+		 
+		同步方法:
+		
+			  如果某个方法 被 synchronized 修饰，则该方法即为 同步方法
+			  
+			  		public class Account {
+			  		
+			  			public synchronized void draw( double money ){
+			  				
+			  			}
+			  			
+			  		}
+			  
+			  所有的 同步方法 的 同步锁 都是 当前对象 ( this ) ，比如 :
+			  
+			  		account.draw( money ) ;
+			  		
+			  此时的 同步锁是  account 
+
+
+6、线程通信: 
+
+			数据传递
+			
+				一个线程中的数据 ，传递给另外一个线程
+				共享变量
+				使用管道流:
+						io PipedInputStream  、PipedOutputStream 
+						    PipedReader 、 PipedWriter 
+					    nio	Pipe.SinkChannel 、Pipe.SourceChannel 
+				
+
+			协调运行 ( notify 、 wait )
+
+
+7、定时任务
+
+		java.util.Timer
+		
+		java.util.TimerTask
+
+
+
+
+
+
