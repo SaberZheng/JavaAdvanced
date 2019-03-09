@@ -19,6 +19,7 @@ class Father {
 		System.out.println( "Father : static code block." );
 		hometown = "Sinaean" ;
 	}//new Fater()时静态代码块最先执行，只执行一次
+	
 	{ System.out.println( "Father : non-static code block." );}//每一次new Fater()都执行，仅此静态代码块执行
 	public Father(){
 		System.out.println( "Father construction." );
