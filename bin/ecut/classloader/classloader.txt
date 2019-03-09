@@ -1,0 +1,179 @@
+
+
+java.lang.Object 是整个 Java 类继承体系的根类
+
+			java.lang.Class 类 也继承了 Object 类
+
+java.lang.Class 类的实例表示正在运行的 Java 应用程序中的类和接口
+
+            java.lang.Object.class 表示正在运行的 Java 程序中的 那个 Object 类 对应的 Class 类型的对象
+
+            Java语言中万事万物都可以当作对象来对待，即使是一个类，也可以当对对象对待。
+
+【类加载】
+
+      JVM 的生命周期 ( 在线程部分 )
+       当一个 Java 程序执行时，将启动一个 JVM 进程 ，当程序执行结束或抛出异常时 JVM 退出
+      
+       一个类生命周期
+      
+              加载: 
+              
+              	  将 字节码文件( .class ) 读入到 JVM 所管理的内存中，
+              	  将 字节码文件对应的类的数据结构 保存在方法区，
+              	  最后生成一个与该类对应的 java.lang.Class 类型的对象 ( 在堆区 )
+              
+              链接:
+              
+              		验证:
+              		
+              		准备:  在准备阶段，JVM 为类的静态变量分配内存，并设置默认值
+              		
+              		           byte 、short 、int 默认值都是 0
+              		           long 默认值是 0L
+              		           float 默认值是 0.0F
+              		           double 默认值是 0.0
+              		           boolean 默认值是 false 
+              		           char 默认值是 \u0000
+              		             引用类型的默认值是 null
+              		            
+              		
+              		解析: 将符号引用解析为直接引用
+              		
+              
+              初始化: JVM 执行 "初始化代码" 对 静态属性 进行初始化操作
+              
+                          初始化代码可能是(声明变量时的赋值语句):
+                            protected static int a = 100 ;
+                            
+                          也可以是(静态代码块):
+	                          static {
+	                          	a = 10000 ;
+	                          }
+              
+              使用: 
+              
+              	主动使用 会导致 类被初始化
+              	
+              		a>、创建类的实例 ( new 、反射、反序列化 、克隆 )
+              		
+              		b>、调用类的静态方法
+              		
+              		c>、访问类 或 接口的 静态属性 ( 非常量属性 )  ( 取值 或 赋值 都算 )
+              		
+              		       访问类 或 接口 的 非编译时常量，也将导致类被初始化:
+              		       public static final long time = System.currentTimeMillis();
+              		
+              		d>、调用反射中的某个些方法，比如 Class.forName( "edu.ecut.Student" );
+              		
+              		e>、初始化某个类时，如果该类有父类，那么父类将也被初始化
+              		
+              		f>、被标记为启动类的那些类
+              	
+              	被动使用 不会导致类被初始化
+              	
+              		1>、使用 类 或 接口 编译时常量，视作对类的被动使用
+              		
+              		      public  static  final  String  SUCCESS = "success" ;
+              		
+              		2>、JVM初始化某个类时，要求其所有父类都已经被初始化，但是 该规则不适用 于 接口 类型
+              		
+              		3>、只有当程序访问的静态变量或静态方法的确在当前类或接口定义时，
+              		        才能看作是对类或接口的主动使用:
+              		        
+							比如使用了 Sub.method() ，而 method() 是继承自 Base ，则只初始化 Base 类
+              
+              		4>、调用 ClassLoader 的 loadClass( ) 加载一个类，不属于对类的主动使用
+              		
+              		
+              卸载: 当一个类不再被任何对象所使用时，JVM会通卸载该类
+      
+       一个对象的生命周期
+       
+               当使用 new 关键字 创建一个类的实例时，一个对象(实例)的生命周期即宣告开始
+               
+               		Student s = new Student();  // 将导致创建一个Student实例并对该实例中的实例属性进行初始化
+               		
+               		实例属性的初始化:
+               		
+               			private int  id = 0 ;
+               			
+               			private String studentNo ; 
+               			
+               			{
+               				studentNo = "ECUT-00000000" ;
+               			}
+               			
+               			private String name ;
+               			
+               			public Student( String name ){
+               				this.name = name ;
+               			}
+               
+               使用对象 ( 使用对象的 属性 、方法 等 )
+               
+               当某个对象不再被任何一个引用变量所引用时，它可能会被GC回收，如果被回收，它的生命周期将宣告结束
+
+
+【类加载器】
+
+
+	   类加载器 : 将字节码文件加载到JVM管理的内存中并创建一个 java.lang.Class 对象
+	   
+	   
+	   
+	   类加载机制:
+	   
+	   		父委托机制:  当需要加载某个类时，加载这个类的类加载器会将加载操作委托给父加载器
+	   		
+	   		       JVM 提供了 根 加载器 : Bootstrap Loader ,它 是 JVM 的一个组成部分 ( 由JVM的实现着实现 )
+	   		       
+              全盘负责: 
+              
+              		当一个 类加载器 负责加载某个 类 时，该类所依赖和引用的其它类也将由当前类的类加载器负责载入，
+              		除非显式使用了另外一个类加载器来载入        
+
+			缓存机制: 
+			
+					使用缓存把所有的被加载过的 类 缓存起来，
+					当程序中需要用到某个类时，类加载器先从缓存中搜寻该 类，如果找到则直接使用;
+					如果缓存中不存在该类，系统将读取该类对应的二进制数据并转换成 Class 对象并存入缓存中
+					
+					这正是修改源文件后只有重启一个 JVM 才能看到修改后的执行效果的原因
+
+
+		父委托机制:
+		
+			  获得某个类的类加载器: 
+			  
+			  		通过 java.lang.Class 类 getClassLoader 方法来获取:
+			  		
+			  		ClassLoader  getClassLoader()
+			  		
+			  		比如:
+			  
+			  		 Class<?> c = String.class ;
+			  		 c.getClassLoader();
+			  		 
+			  		 Object o = new ArrayList();
+			  		 
+			  		 c = o.getClass();
+			  		 c.getClassLoader();
+
+			  获得某个类加载器的父加载器: 
+			  
+			  		ClassLoader#getParent()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
